@@ -29,6 +29,10 @@
       <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <!-- Load MathJax -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   </head>
 
   <body>
@@ -73,31 +77,80 @@
 
     <hr id="intro">
 
-    <div style="text-align:center;">
+    <div style="text-align:center;font-size: 12pt;">
             <h2>Introduction</h2>
-            <p style="text-align: left;padding: 0px 30px;">Add text here</p>
+            <p style="text-align: left;padding: 0px 30px;">This project mirrors a childhood favorite game, Wii Bowling, with a microcontroller twist. Our Wii Bowling implementation utilizes two Raspberry Pi Pico W boards– one as the hand-held controller, and one connected to our VGA display. The controller-system uses an IMU to track the user’s bowling movements and has two buttons to track user inputs. IMU and user input data are sent from the controller to the VGA-system Pico with UDP communication. The Pico W and VGA system runs a bowling physics simulation with the IMU swing data and then displays the ball and pin movements through VGA graphics. We built a cohesive two-player bowling game that includes a classic bowling scoreboard, with all the bowling game logic.</p>
+            <p style="text-align: left;padding: 0px 30px;">This project presented a unique challenge of creating a playable and believable game, while balancing the difficulties of integrating network communication, hardware peripherals, collision physics, and VGA graphic design. We learned many new things about the game of bowling, including the sometimes complicated intricacies of bowling scores. We also developed a newfound appreciation for game design– taking care to create visuals that were both fun and satisfying to watch. </p>
     </div>
 
     <hr id='hld'>
 
-    <div style="text-align:center;">
+    <div style="text-align:center;font-size: 12pt;">
             <h2>High Level Design</h2>
-            <p style="text-align: left;padding: 0px 30px;">Add text here</p>
+            <p style="text-align: left;padding: 0px 30px;">Pii Bowling was heavily inspired by Wii Bowling, originally designed for the Nintendo Wii. In Wii Bowling, the user can choose the ball’s trajectory angle and release point with their Wii controller. The user then presses a button to track their swing and the game takes into account any spin and their velocity from swing movements. We essentially wanted to imitate this game design but with only one sensor– an IMU. This is where our design and the Wii Bowling game design diverges– since they have an additional optical sensor that tracks where the remote is pointing and gets orientation data (useful for bowling swing trajectory tracking). With our one IMU, and a few buttons, we still mirror the choice of angle and release point, and track the spin and velocity of the bowling ball based on the user’s swing. Our graphics are more simplistic, choosing to display the game from an overhead rather than Wii Bowling’s complex animations. </p>
+            <p style="text-align: left;padding: 0px 30px;">No existing patents, copyrights, or trademarks were violated in the creation of this project. Although we found inspiration from Wii Bowling, our implementation and design choices diverged to result in a unique adaptation. </p>
+              <div style="text-align:center;">
+                <img class="img-rounded" src="figs/hardware-logic-diagram.png" alt="Hardware Block Diagram" style="width:80%;">
+                <h4>Figure 1: High-level hardware block diagram </h4>
+             </div>
+            <p style="text-align: left;padding: 0px 30px;">The block diagram above shows our high-level hardware design and components. On the remote side, we had two buttons, an IMU and a RPi Pico W. We used two pins, 6 and 21, to hook up the buttons. We used the SDA and SCL connections from pins 8 and 9 to connect the IMU, MPU6050, to our Pico. Additionally, our remote controller was built to be handheld, so we added a battery pack to power the Pico, using pin 39. On the console side, we had another RPi Pico W connected to a VGA display. We used pin 16 for HSYNC, pin 17 for VSYNC, pin 18 for VGA red, pin 19 for VGA green, pin 20 for VGA blue, and hooked up ground. </p>
+            <h3 style="text-align: left;padding: 0px 30px;">Background Math</h3>
+            <p style="text-align: left;padding: 0px 30px;">The math can be separated into (1) the motion feature extraction algorithm and the physics engine. We explain the math behind both of those below:</p>
+            <ol style="text-align: left;padding: 0px 50px;">
+                <li>
+                    <p>The Motion Feature Extraction (MFE):</p>
+                    <p>The algorithm which we use to turn the raw IMU data which was transferred over UDP into swing data. Firstly, we pass the raw IMU data, including accelerometer and gyroscope readings in X, Y, Z direction of the MPU 6050, in a low-pass filter to smooth the data following this equation:
+                        \( x_i = \alpha x_i + (1-\alpha) x_{i-1}\), where \(\alpha=0.8\),  a value we converged to after trying others and observing the most stability without the loss of valuable signal. We then assert the swing is valid, ie. contains a long enough back and forward swing by analyzing the rotational patterns in the Z-axis. Specifically, we look for a negative rotation (below -30°/s) indicating a backswing, followed by a positive rotation (above 40°/s) indicating a forward swing. We require at least 3 frames in each phase, while also checking that the total swing happens within a reasonable timeframe (0.3-3.0 seconds) and follows a natural bowling motion pattern with limited direction changes (1-5). This helps us reject random shaking or invalid movements that don't represent an actual bowling throw. 
+                    </p>
+                    <p>Finally, we extract the output speed and spin of the balls. We use the gyroscope data which measures the angular velocity of the IMU in degrees and convert it to linear velocity by using the following formula:
+                        \(v=r*\omega*\frac{\pi}{180}\), where \(\omega\) are the values measured by the IMU's gyroscope in degrees and \(r=0.8m\) or the average length of a human arm. Similarly to the preprocessing of the raw data, we use another high-pass filter to calculate the instantaneous changes in motion, which more accurately represents the release characteristics of the ball at the very end of the swing. For the final output, we combine both maximum values and filtered values using weighted averages (50/50 for speed and 35/65 for spin) to balance peak intensity with sustained motion, providing a more realistic representation of how a bowling ball would behave when released from the player's hand.
+                    </p>
+                </li>
+                <li>
+                    <p>The Physics Engine: TODO</p>
+                </li>
+            </ol>
+            <h3 style="text-align: left;padding: 0px 30px;">Gameplay Mechanics</h3>
+            <p style="text-align: left;padding: 0px 30px;">Bowling is usually played in 10 frames and two rolls per frame, with the exception of the 10-th frame, in which the user is given three frames as long as all pins are knocked down by the end of the second frame. If a user has a strike on the first frame, they will skip the second frame, letting the opponent take their turn. Our gameplay aims to follow the bowling gameplay. The two players would first be met with a welcome screen shown below in Figure 2. </p>
+            <div style="text-align:center;">
+                <img class="img-rounded" src="figs/start-screen-gif.gif" alt="Start Screen GIF" style="width:45%;">
+                <h4>Figure 2: Welcome Sreen GIF </h4>
+             </div>
+            <p style="text-align: left;padding: 0px 30px;">By clicking any of the two buttons on the remote, they would then be able to move to the Pii Bowling game play. Secondly, the player determines the initial position of the ball. The green arrow from figure 3 moves along five positions equidistant from each other along the width of the bowling alley. The user can pick the desired location by clicking on button 1 with the appropriate timing.</p>
+            <p style="text-align: left;padding: 0px 30px;">Once the player has picked the trajectory’s initial position, they must pick the appropriate angle for the release of the ball. As shown in the figure #, the green representing the angle of release swings from 90° to -90° and back. The player has to click button 1 with the appropriate timing once again to pick the direction of the trajectory. In the next state, the player then needs to swing the remote, mimicking the swing of bowling, while pressing button 2. The gameplay extracts the remote speed and the spin depending on the swing, which will both impact the trajectory of the ball. Once the user releases finishes his swing and releases button 2, the console will start simultaneously simulating the trajectory, ie. the next position of the ball, pins and whether they have fallen, and animating the updates. This process continues until either the bowling ball is beyond the end of the bowling lane or if the swing is weak and the ball’s velocity falls to 0. Once the simulation and animation phase is over, the console will calculate the number of pins which were knocked down, update the score of the user, depending on whether the roll was a strike, spare or neither, and update the game tracking variables. In other words, depending on the outcome the game will switch players, if all pins are knocked down or the two rolls are over, or will allow the player to roll again, if there remains one or more pins standing and if the player is still on roll 1. The remote then needs to be switched hands, or not depending on whether the players change, and the game goes back to picking the initial position of the ball. This circular logic is described in the state diagram below:</p>
+                        <div style="text-align:center;">
+                <img class="img-rounded" src="figs/gameplay-state-diagram.png" alt="Pii Bowling State Diagram" style="width:70%;">
+                <h4>Figure 4: Pii Bowling State Diagram </h4>
+             </div>
+            <h3 style="text-align: left;padding: 0px 30px;">Hardware/Software Trade Offs</h3>
+            <p style="text-align: left;padding: 0px 30px;">In designing our bowling game system, we faced several critical hardware and software trade-offs that influenced the final implementation. When selecting an IMU, we balanced price against functionality. The MPU6050 offered a good compromise, providing 6-axis motion sensing (3-axis accelerometer and 3-axis gyroscope) at a reasonable cost. While more expensive IMUs might have provided higher sampling rates or additional sensors like magnetometers, the MPU6050 delivered sufficient data quality for our motion analysis needs without exceeding our budget constraints. Our motion feature extraction algorithm was designed to work effectively with this sensor's capabilities, using filtering techniques to compensate for noise and drift issues.</p>
+            <p style="text-align: left;padding: 0px 30px;">The choice between UDP and Bluetooth for wireless communication represented another significant trade-off. We ultimately selected UDP over Wi-Fi for its lower latency and simpler implementation. Our experiments showed that UDP's occasional packet loss had negligible impact on gameplay, as the high sampling rate of motion data meant that losing a few samples didn't significantly affect trajectory analysis. In fact, the reduced latency from using UDP instead of TCP more than compensated for any reliability concerns, resulting in responsive and natural-feeling motion controls. The simplicity of the UDP implementation also allowed us to focus more development time on game mechanics rather than communication protocols, though it did require both devices to be on the same Wi-Fi network.</p>
+            <p style="text-align: left;padding: 0px 30px;">For display technology, we chose VGA output for its wide compatibility and direct control capabilities. While HDMI might have offered higher resolution, the complexity of implementing an HDMI controller was prohibitive given our project timeline and resource constraints. VGA allowed us to achieve sufficient graphical quality for an engaging bowling simulation while maintaining precise timing control over the display signals. The 640x480 resolution proved adequate for rendering the bowling lane, pins, and scoreboard with appropriate detail. Our decision to implement custom graphics routines rather than using a graphics library gave us greater control over optimization, allowing us to selectively update only the changing portions of the screen.</p>
+            <p style="text-align: left;padding: 0px 30px;">Leveraging the Raspberry Pi Pico's dual-core architecture represented an important hardware/software trade-off that significantly improved performance. By dedicating one core exclusively to VGA signal generation and graphics rendering, we ensured smooth visual output without interruption from network processing or game logic. The second core handled network communication, input processing, and physics simulation. This division required careful synchronization between cores using volatile variables and semaphores, adding some complexity to the code. However, the performance benefits far outweighed the added development complexity, allowing us to maintain a consistent frame rate even during intensive physics calculations when multiple pins were in motion.</p>
+            <p style="text-align: left;padding: 0px 30px;">The interface design presented a final hardware trade-off in determining the optimal number of buttons. We settled on two buttons for the remote controller: one for initiating and executing the bowling swing, and another for UI navigation and confirmation. Adding more buttons could have allowed more direct control over gameplay elements, but would have complicated both the hardware design and user experience. Our two-button approach, combined with motion sensing, struck a balance between simplicity and functionality. The primary button captured the bowling motion when held down, while the secondary button allowed players to navigate the game interface and confirm selections. This minimal input scheme made the system more approachable for new users while still providing sufficient control for an engaging bowling experience.</p>
     </div>
 
     <hr id='phd'>
 
     <div style="text-align:center;">
-              <h2>Program/Hardware Design</h2>
+            <h2>Program/Hardware Design</h2>
+            <h3 style="text-align: left;padding: 0px 30px;">Hardware Design</h3>
+            <p style="text-align: left;padding: 0px 30px;">Add text</p>
 
-              <p style="text-align: left;padding: 0px 30px;">Add text</p>
-
-              <div style="text-align:center;">
-                <img class="img-rounded" src="img/HWDiagram.jpg" alt="Motor Setup" style="width:80%;">
-                <h4>Figure 1: Add Figure</h4>
-             </div>
-
-              <p style="text-align: left;padding: 0px 30px;">Add text </p>                  
+            <h3 style="text-align: left;padding: 0px 30px;">Program Design</h3>
+            <p style="text-align: left;padding: 0px 30px;">Overall the program can be split into four parts: the remote and console UDP code, the VGA display code, the motion feature extraction code, and finally the bowling physics code. While the VGA display and motion feature extraction components were not easy to code, the UDP code and the physics engine were by far the most complex and time-consuming portions of the code base. The physics simulator is not only built on many moving pieces, which could each have a bug, but also need to interlock perfectly in order to work together. Additionally, the physics engine required a very long fine-tuning process, ensuring that the ball trajectory, ball-pin, and the pin-pin collisions looked authentic. The </p>                  
+            <h4 style="text-align: left;padding: 0px 30px;">UDP</h4>
+            <h4 style="text-align: left;padding: 0px 30px;">Remote Program</h4>
+            <h4 style="text-align: left;padding: 0px 30px;">Console Program</h4>
+            <p style="text-align: left;padding: 0px 30px;">The console program, which runs and computes all the gameplay, consists of five main components working together: the IMU Buffer which stores motion data received through UDP, the Motion Feature Extraction (MFE) translates this data into bowling parameters, the Physics Simulation calculates ball and pin movements, the Scoreboard tracks player progress, and the VGA Graphics renders everything on screen. The system uses UDP for communication between the remote controller and console, and splits processing across the Pico's dual cores for better performance.</p>
+            <h5 style="text-align: left;padding: 0px 30px;">IMU Buffer</h5>
+            <h5 style="text-align: left;padding: 0px 30px;">MFE</h5>
+            <p style="text-align: left;padding: 0px 30px;">The Motion Feature Extraction (MFE) module analyzes sensor data (a full IMU buffer) to determine bowling throw characteristics. When a throw is completed (button release), the system processes the collected data. The processing function filters the sensor noise, calculates release speed, determines spin rate, and sets trajectory parameters. These values are used to determine the path of the ball. </p>
+            <h5 style="text-align: left;padding: 0px 30px;">Physics Simulation</h5>
+            <h5 style="text-align: left;padding: 0px 30px;">Scoreboard</h5>
+            <h5 style="text-align: left;padding: 0px 30px;">VGA Graphics</h5>
+            <p style="text-align: left;padding: 0px 30px;">Our console program uses the microcontroller’s multiple cores to keep graphics running while keeping up with all the other tasks of our program. Core 0 handles UDP networking, processing input data, and game logic. Core 1 handles the VGA graphics. </p>
+            <p style="text-align: left;padding: 0px 30px;">This parallelism in our console code allowed us to program decent graphics to keep up with simulation details. We packaged our graphics into multiple functions, some for whole pages like the welcome screen, and some for simply updating the ball’s location as it moved down the screen. We took the time to code details such as pins with stripes, and a scoreboard view like you might see at a bowling alley. </p>
     </div>
 
     <hr id='result'>
@@ -127,7 +180,7 @@
             <h3>Appendix B: Code</h3>
             <p>
                 The full project source code is available on our 
-                <a href="https://github.com/Raphael138/Pii-Bowling/tree/main/src" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                <a href="https://github.com/Raphael138/Pii-Bowling/tree/main" target="_blank" style="color: #1a0dab; text-decoration: none;">
                     GitHub repository
                 </a>. It includes the header and C files which we coded: <code>bowling_physics.c</code>, <code>bowling_physics.h</code>, <code>bowling_graphics.c</code>, <code>bowling_graphics.h</code>,
                 <code>bowling_score.c</code>, <code>bowling_score.h</code>, <code>connect.h</code>, <code>emulator_udp.c</code>, <code>imu_container.c</code>, <code>imu_container.h</code>, <code>mfe_algorithm.c</code>, <code>mfe_algorithm.h</code>,
@@ -139,14 +192,42 @@
             </p>
 
             <h3>Appendix C: Materials</h3>
-            <p>All the materical which we used were provided by the course, free of charge. We made use of </p>
+            <p>All the materical which we used were provided by the course, free of charge. We made use of 2 Raspberry Pico Ws with breadboards, 1 battery pack, 3 AA batteries, 1 MPU 6050, 2 buttons, 
+            3 300 Ohm resistors, 1 VGA cable and display as well as many connecting wires.
+            </p>
 
             <h3>Appendix D: Work Distribution</h3>
-            <p>Add text.</p>
+            <p>Raphael worked on the physics engine, the motion feature extraction algorithm, the VGA graphics and the overall console/remote code.</p>
+            <p>Kristen worked on the soldering of the pins to the Pico W and the other various hardware connections. She also implemented the 
+                UDP code to work with IMU, some of the VGA graphics code, part of the motion feature extraction algorithm, and the scoring system.
+            </p>
+            <p>The work was overall split evenly between the groupmates and both worked on the report/final website.</p>
 
             <h3>Appendix E: References & Datasheets</h3>
-            <p>Add text.</p>
-
+            <ul>
+                <li>
+                    <a href="https://people.ece.cornell.edu/land/courses/ece4760/RP2040/C_SDK_LWIP/UDP_array_send_recv/index_udp_array.html" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                        Prof. Bruce Land's UDP data array from PicoW to PicoW code 
+                    </a>
+                </li>
+                <li>
+                    <a href="https://github.com/vha3/Hunter-Adams-RP2040-Demos/tree/master/Networking/UDP_Transmitter" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                        Prof. Hunter Adam's UDP Transmitter code on GitHub 
+                    </a>
+                </li>
+                <li>
+                    <a href="https://datasheets.raspberrypi.com/picow/pico-w-datasheet.pdf" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                        Raspberry Pi Pico W
+                    </a>
+                </li>
+                <li>
+                    <a href="https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                        MPU6050 IMU
+                    </a>
+                </li>
+                <li>Protothread library</li>
+                <li>VGA display library</li>
+            </ul>
         </div>
       </div>
 
