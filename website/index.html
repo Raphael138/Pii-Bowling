@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Pii Bowling</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <link href="../../assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet"> -->
+
+    <!-- Custom styles for this template -->
+    <link href="starter-template.css" rel="stylesheet">
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <!-- <script src="../../assets/js/ie-emulation-modes-warning.js"></script> -->
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Pii Bowling</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="#">Home</a></li>
+            <li><a href="#intro">Introduction</a></li>
+            <li><a href="#hld">High Level Design</a></li>
+            <li><a href="#phd">Program/Hardware Design</a></li>
+            <li><a href="#result">Results</a></li>
+            <li><a href="#conclusion">Conclusion</a></li>
+            <li><a href="#appendicies">Appendicies</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </nav>
+
+    <div class="container">
+
+    <div class="starter-template">
+      <h1>Pii Bowling</h1>
+      <p class="lead">ECE 4760 Spring 2025<br>Raphael Thesmar (rft38) & Kristen Moon (kjm264)</p>
+    </div>
+
+    <hr>
+    <div class="center-block">
+        <iframe width="640" height="360" src="https://www.youtube.com/embed/bTKnEO6jgwE" frameborder="0" allowfullscreen></iframe>
+        <h4 style="text-align:center;">Demonstration Video</h4>
+    </div>
+
+    <hr id="intro">
+
+    <div style="text-align:center;">
+            <h2>Introduction</h2>
+            <p style="text-align: left;padding: 0px 30px;">Add text here</p>
+    </div>
+
+    <hr id='hld'>
+
+    <div style="text-align:center;">
+            <h2>High Level Design</h2>
+            <p style="text-align: left;padding: 0px 30px;">Add text here</p>
+    </div>
+
+    <hr id='phd'>
+
+    <div style="text-align:center;">
+              <h2>Program/Hardware Design</h2>
+
+              <p style="text-align: left;padding: 0px 30px;">Add text</p>
+
+              <div style="text-align:center;">
+                <img class="img-rounded" src="img/HWDiagram.jpg" alt="Motor Setup" style="width:80%;">
+                <h4>Figure 1: Add Figure</h4>
+             </div>
+
+              <p style="text-align: left;padding: 0px 30px;">Add text </p>                  
+    </div>
+
+    <hr id='result'>
+
+    <div style="text-align:center;">
+            <h2>Results</h2>
+            <p style="text-align: left;padding: 0px 30px;">Add text</p>
+
+    </div>
+
+    <hr id='conclusion'>
+
+      <div style="text-align:center;">
+              <h2>Conclusion</h2>
+              <p style="text-align: left;padding: 0px 30px;"> Add text. </p>
+      </div>
+
+    <hr id='appendicies'>
+
+    <div class="app" style="text-align:center;">
+        <h2>Appendicies</h2>
+        <div style="text-align: left; padding: 0px 30px;">
+            <h3>Appendix A: Permissions</h3>
+            <p>The group approves this report for inclusion on the course website.</p>
+            <p>The group approves the video for inclusion on the course youtube channel.</p>
+
+            <h3>Appendix B: Code</h3>
+            <p>
+                The full project source code is available on our 
+                <a href="https://github.com/Raphael138/Pii-Bowling/tree/main/src" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                    GitHub repository
+                </a>. It includes the header and C files which we coded: <code>bowling_physics.c</code>, <code>bowling_physics.h</code>, <code>bowling_graphics.c</code>, <code>bowling_graphics.h</code>,
+                <code>bowling_score.c</code>, <code>bowling_score.h</code>, <code>connect.h</code>, <code>emulator_udp.c</code>, <code>imu_container.c</code>, <code>imu_container.h</code>, <code>mfe_algorithm.c</code>, <code>mfe_algorithm.h</code>,
+                and <code>remote_udp.c</code>. It also includes file which we obtained from the course, like <code>font_rom.h</code>, <code>font_rom_brl4.h</code>, <code>glcdfont.c</code>, 
+                <code>hsync.pio</code>, <code>vsync.pio</code>, <code>rgb.pio</code>, <code>lwipopts.h</code>, <code>mpu6050.c</code>, <code>mpu6050.h</code>, <code>pt_cornell_rp2040_v1_1_2.h</code> and <code>pt_cornell_rp2040_v1_3.h</code>.
+                Additionally, we also include some of Prof. Bruce Land's <a href="https://people.ece.cornell.edu/land/courses/ece4760/RP2040/C_SDK_LWIP/UDP_array_send_recv/index_udp_array.html" target="_blank" style="color: #1a0dab; text-decoration: none;">
+                UDP communication code </a>, specifically the <code>udpecho_raw.h</code> and <code>picow_udp_send_recv_data.c</code> files.
+                Finally, there are also the <code>pico_sdk_import.cmake</code> and <code>CMakeLists.txt</code> files which we used to compile the project and slightly edited.
+            </p>
+
+            <h3>Appendix C: Materials</h3>
+            <p>All the materical which we used were provided by the course, free of charge. We made use of </p>
+
+            <h3>Appendix D: Work Distribution</h3>
+            <p>Add text.</p>
+
+            <h3>Appendix E: References & Datasheets</h3>
+            <p>Add text.</p>
+
+        </div>
+      </div>
+
+    </div><!-- /.container -->
+
+
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
+    <script src="dist/js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
+  </body>
+</html>
